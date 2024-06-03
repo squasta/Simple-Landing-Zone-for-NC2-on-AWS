@@ -1,6 +1,8 @@
 # Simple-Landing-Zone-for-NC2-on-AWS
 This repo contains terraform code to deploy a simple network landing zone for Nutanix Cloud Cluster (NC2) on AWS
 
+<img width='400' src='./images/PlaneLZ.jpeg'/> 
+
 ## Prerequisites
 
 - All prerequisites for NC2 : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-requirements-c.html 

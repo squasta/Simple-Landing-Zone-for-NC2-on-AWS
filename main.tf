@@ -105,6 +105,7 @@ resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
   map_public_ip_on_launch = true
 
   tags = {
+    ## join function https://developer.hashicorp.com/terraform/language/functions/join
     Name = join("", ["NC2-PrivateSubnet-UVM1-",var.AWS_REGION,"a"])
   }
 }
@@ -151,12 +152,60 @@ resource "aws_nat_gateway" "Terra-AWS-NAT-GW" {
 # Route Table for Public Subnet
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
 
+resource "aws_route_table" "Terra-Public-Route-Table" {
+  vpc_id = aws_vpc.Terra-VPC.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.Terra-Internet-Gateway.id
+  }
+
+  route {
+     # since this is exactly the route AWS will create, the route will be adopted
+    cidr_block = "10.0.1.0/24"
+    gateway_id = "local" # local route
+  }
+
+  tags = {
+    Name = "NC2-Route-Table-Public"
+  }
+}
 
 
 
-# Route Table for Private Subnet
+# Route Table for Private Subnet(s)
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
-# this is the route table for the private subnet, to go to on-premises network
+# this is the route table for the private subnets, to go to on-premises network or Internet
+
+resource "aws_route_table" "Terra-Private-Route-Table" {
+  vpc_id = aws_vpc.Terra-VPC.id
+
+  # route {
+  #   cidr_block = "0.0.0.0/24"
+  #   gateway_id = aws_internet_gateway.example.id
+  # }
+
+  route {
+    cidr_block = "10.0.2.0/24"
+    gateway_id = "local" # local route
+  }
+
+  route {
+    cidr_block = "10.0.3.0/24"
+    gateway_id = "local" # local route
+  }
+
+  tags = {
+    Name = "NC2-Route-Table-Private"
+  }
+}
+
+
+# AWS Security Group for Public Subnet
+
+
+
+# AWS Security Group for Private Subnets
 
 
 
