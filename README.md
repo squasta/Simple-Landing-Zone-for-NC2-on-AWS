@@ -8,11 +8,11 @@ This repo contains terraform code to deploy a simple network landing zone for Nu
 - All prerequisites for NC2 : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-requirements-c.html 
 - More information about NC2 on AWS : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-getting-started-c.html 
 
-- An AWS Account with enough privileges (create VPC, ...)
+- An AWS Account with enough privileges (create Role, ...)
 - AWS CLI 2.15 or >: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html or https://github.com/aws/aws-cli/tree/v2  
 - Terraform CLI 1.5 or > : <https://www.terraform.io/downloads.html>
 
-You can also clone this repo in your AWS Cloud Shell (that has all tools installed)
+You can also clone this repo in your AWS Cloud Shell (https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html) and install terraform in your cloud shell.
 
 
 ## Step by step operations
@@ -57,11 +57,11 @@ terraform apply --var-file=configuration.tfvars
 
 5. Go to Nutanix Cloud Cluster (NC2) Portal https://cloud.nutanix.com and start your Nutanix Cluster deployment wizard.
 
-In Step 1 (General) choose the same AWS region and Availability Zone that you used in your terraform deployment
+In Step 1 (**General**) choose the same AWS region and Availability Zone that you used in your terraform deployment
 
 <img width='800' src='./images/NC2WizStep1.png'/> 
 
-In Step 4 (Network) choose the VPC and Management Subnets created with terraform
+In Step 4 (**Network**) choose the VPC and Management Subnets created with terraform
 
 <img width='800' src='./images/NC2WizStep4.png'/>
 
@@ -96,7 +96,7 @@ terraform destroy --var-file=configuration.tfvars
 
 It's very cheap to test and customize this simple landing zone.
 
-You can use infracost (available on https://www.infracost.io/) to check the estimate price for 1 month. Here is an exemple for North Virginia (us-east-1)
+You can use **infracost** (available on https://www.infracost.io/) to check the estimate price for 1 month. Here is an exemple for North Virginia (us-east-1)
 
 <img width='800' src='./images/InfracostNC2LDZAWS.png'/> 
 
