@@ -41,6 +41,7 @@ resource "aws_vpc" "Terra-VPC" {
 resource "aws_subnet" "Terra-Public-Subnet" {
   vpc_id                  = aws_vpc.Terra-VPC.id
   cidr_block              = "10.0.1.0/24"   # CIDR requirements: /16 and /25 including both
+                                            # a /28 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
   availability_zone       = join("", [var.AWS_REGION,"a"])                
   map_public_ip_on_launch = true
 
@@ -56,6 +57,7 @@ resource "aws_subnet" "Terra-Public-Subnet" {
 resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
   vpc_id                  = aws_vpc.Terra-VPC.id
   cidr_block              = "10.0.2.0/24"    # CIDR requirements: /16 and /25 including both
+                                             # a /25 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
   availability_zone       = join("", [var.AWS_REGION,"a"])                 
 
   tags = {
