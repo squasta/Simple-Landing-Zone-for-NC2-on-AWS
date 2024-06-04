@@ -3,6 +3,7 @@ This repo contains terraform code to deploy a simple network landing zone for Nu
 
 <img width='400' src='./images/PlaneLZ.jpeg'/> 
 
+
 ## Prerequisites
 
 - All prerequisites for NC2 : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-requirements-c.html 
@@ -13,6 +14,11 @@ This repo contains terraform code to deploy a simple network landing zone for Nu
 - Terraform CLI 1.5 or > : <https://www.terraform.io/downloads.html>
 
 You can also clone this repo in your AWS Cloud Shell (https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html) and install terraform in your cloud shell.
+
+
+## Landing Zone architecture
+
+<img width='400' src='./images/NC2-AWS-LZ.png'/>  
 
 
 ## Step by step operations
@@ -96,11 +102,10 @@ terraform destroy --var-file=configuration.tfvars
 
 It's very cheap to test and customize this simple landing zone.
 
-You can use **infracost** (available on https://www.infracost.io/) to check the estimate price for 1 month. Here is an exemple for North Virginia (us-east-1)
+You can use **infracost** (available on https://www.infracost.io/) to check the estimate price for 1 month. Here is an exemple for North Virginia (us-east-1) AWS Region
 
 <img width='800' src='./images/InfracostNC2LDZAWS.png'/> 
 
- :exclamation: Important : this landing zone cost estimation does not include the cost of AWS EC2 Metal instance used as nodes in the Nutanix Cluster. Please have a lot of metal instances here : https://aws.amazon.com/ec2/pricing/on-demand/
-
-
+ :exclamation: Important : this landing zone cost estimation does not include the cost of AWS EC2 Metal instance(s) used as node(s) in the Nutanix Cluster. 
+ Please have a look of metal instances prices here : https://aws.amazon.com/ec2/pricing/on-demand/
 
