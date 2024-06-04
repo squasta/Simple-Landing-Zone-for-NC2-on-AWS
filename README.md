@@ -18,7 +18,7 @@ You can also clone this repo in your AWS Cloud Shell (https://docs.aws.amazon.co
 
 ## Landing Zone architecture
 
-<img width='400' src='./images/NC2-AWS-LZ.png'/>  
+<img width='800' src='./images/NC2-AWS-LZ.png'/>  
 
 
 ## Step by step operations
