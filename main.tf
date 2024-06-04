@@ -41,7 +41,7 @@ resource "aws_vpc" "Terra-VPC" {
 resource "aws_subnet" "Terra-Public-Subnet" {
   vpc_id                  = aws_vpc.Terra-VPC.id
   cidr_block              = "10.0.1.0/24"   # CIDR requirements: /16 and /25 including both
-  availability_zone       = "eu-west-3a"
+  availability_zone       = join("", [var.AWS_REGION,"a"])                
   map_public_ip_on_launch = true
 
   tags = {
@@ -56,7 +56,7 @@ resource "aws_subnet" "Terra-Public-Subnet" {
 resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
   vpc_id                  = aws_vpc.Terra-VPC.id
   cidr_block              = "10.0.2.0/24"    # CIDR requirements: /16 and /25 including both
-  availability_zone       = "eu-west-3a"
+  availability_zone       = join("", [var.AWS_REGION,"a"])                 
 
   tags = {
     Name = join("", ["NC2-PrivateMgntSubnet-",var.AWS_REGION,"a"])
@@ -70,7 +70,7 @@ resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
 resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
   vpc_id                  = aws_vpc.Terra-VPC.id
   cidr_block              = "10.0.3.0/24"   # CIDR requirements: /16 and /25 including both
-  availability_zone       = "eu-west-3a"
+  availability_zone       = join("", [var.AWS_REGION,"a"])                   
 
   tags = {
     ## join function https://developer.hashicorp.com/terraform/language/functions/join
@@ -88,7 +88,7 @@ resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
 resource "aws_subnet" "Terra-Private-Subnet-PC" {
   vpc_id                  = aws_vpc.Terra-VPC.id
   cidr_block              = "10.0.4.0/24"   # CIDR requirements: /16 and /25 including both
-  availability_zone       = "eu-west-3a"
+  availability_zone       = join("", [var.AWS_REGION,"a"])                       
 
   tags = {
     ## join function https://developer.hashicorp.com/terraform/language/functions/join
@@ -178,6 +178,8 @@ resource "aws_route_table" "Terra-Private-Route-Table" {
   # Insert here you internal routes to on-premises network or other networks
   #
 
+  # propagating_vgws = [aws_vpn_gateway.Terra-VPN-GW.id]  # if you have a VPN connection to on-premises network
+
   tags = {
     Name = "NC2-Route-Table-Private"
   }
@@ -258,7 +260,7 @@ resource "aws_s3_bucket" "Terra-S3-Bucket-PC" {
   bucket_prefix = "nutanix-clusters-mst-pc"
 
   tags = {
-    Name        = "nutanix-clusters-PC"
+    Name        = "nutanix-clusters-mst-pc"
   }
 }
 
@@ -303,6 +305,8 @@ resource "aws_s3_bucket_object_lock_configuration" "Terra-S3-Bucket-PC-Object-Lo
       days = 31
     }
   }
+
+  depends_on = [ aws_s3_bucket_versioning.Terra-S3-Bucket-PC-Versioning ]
 }
 
 # Configure the Object Lifecycle rule to auto-delete older backup data, and the rule scope must be set to apply to all objects in the bucket.
@@ -339,7 +343,7 @@ resource "aws_s3_bucket" "Terra-S3-Bucket-UVM" {
   bucket_prefix = "nutanix-clusters-mst-uvm"
 
   tags = {
-    Name        = "nutanix-clusters-UVM"
+    Name        = "nutanix-clusters-mst-uvm"
   }
 }
 
@@ -375,6 +379,8 @@ resource "aws_s3_bucket_object_lock_configuration" "Terra-S3-Bucket-UVM-Object-L
       days = 31
     }
   }
+
+  depends_on = [ aws_s3_bucket_versioning.Terra-S3-Bucket-UVM-Versioning ]
 }
 
 # Configure the Object Lifecycle rule to auto-delete older backup data, and the rule scope must be set to apply to all objects in the bucket.

@@ -12,5 +12,5 @@ terraform {
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs
 # https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-user.html 
 provider "aws" {
-  region  = "eu-west-3"
+  region  = var.AWS_REGION
 }

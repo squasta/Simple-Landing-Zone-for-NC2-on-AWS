@@ -6,5 +6,5 @@ variable "VPC_NAME" {
 
 variable "AWS_REGION" {
   description = "The AWS region to deploy to"
-  default     = "eu-west-3"     # eu-west-3	= Paris Region
+  default     = "us-east-1"     # eu-west-3	= Paris Region
 }
