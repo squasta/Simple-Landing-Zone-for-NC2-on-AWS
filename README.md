@@ -37,6 +37,8 @@ The following command gives the region actually used by the CLI regardless of wh
 aws ec2 describe-availability-zones --output table --query 'AvailabilityZones[0].[RegionName]'
 ```
 
+Check that the region and Bare-metal instance you choose are supported for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-xi-supported-regions-metals.html 
+
 
 If you want to define your own IP ranges, edit [main.tf](main.tf)  (I will change that later to put everything as a variable)
  
@@ -107,5 +109,6 @@ You can use **infracost** (available on https://www.infracost.io/) to check the 
 <img width='800' src='./images/InfracostNC2LDZAWS.png'/> 
 
  :exclamation: Important : this landing zone cost estimation does not include the cost of AWS EC2 Metal instance(s) used as node(s) in the Nutanix Cluster. 
- Please have a look of metal instances prices here : https://aws.amazon.com/ec2/pricing/on-demand/
+ Please have a look of metal instances prices here : https://aws.amazon.com/ec2/pricing/on-demand/. Pricing is per instance-hour consumed for each instance, from the time an instance is launched until it is terminated or stopped. Each partial instance-hour consumed will be billed per-second for Linux, Windows, Windows with SQL Enterprise, Windows with SQL Standard, and Windows with SQL Web Instances, and as a full hour for all other instance types.
+
 
