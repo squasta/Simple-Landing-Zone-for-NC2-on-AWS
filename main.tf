@@ -246,249 +246,249 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-PC
 
 
 
-#### For NC2 Cluster Protect #####
+# #### For NC2 Cluster Protect #####
 
-# Two new AWS S3 buckets with Nutanix IAM role if you want to use 
-# the Cluster Protect feature to protect Prism Central, UVM, and volume groups data.
-# S3-Bucket
-# https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
-# cf. https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-cluster-protect-creating-s3-buckets-c.html
-# Note: NC2 creates an IAM role with the required permissions to access S3 buckets with the nutanix-clusters prefix.
-#       This IAM role is added to the CloudFormation template. 
-# cf. https://registry.terraform.io/modules/terraform-aws-modules/s3-bucket/aws/latest 
+# # Two new AWS S3 buckets with Nutanix IAM role if you want to use 
+# # the Cluster Protect feature to protect Prism Central, UVM, and volume groups data.
+# # S3-Bucket
+# # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+# # cf. https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-cluster-protect-creating-s3-buckets-c.html
+# # Note: NC2 creates an IAM role with the required permissions to access S3 buckets with the nutanix-clusters prefix.
+# #       This IAM role is added to the CloudFormation template. 
+# # cf. https://registry.terraform.io/modules/terraform-aws-modules/s3-bucket/aws/latest 
 
-# Bucket for Prism Central backups
-resource "aws_s3_bucket" "Terra-S3-Bucket-PC" {
-  bucket_prefix = "nutanix-clusters-mst-pc"
-
-  tags = {
-    Name        = "nutanix-clusters-mst-pc"
-  }
-}
-
-# Ensure that public access to MST PC  S3 buckets is blocked by default
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
-resource "aws_s3_bucket_public_access_block" "Terra-S3-Public-Access-Block-PC" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id 
-
-  block_public_acls   = true
-  block_public_policy = true
-  ignore_public_acls  = true
-  restrict_public_buckets = true
-}
-
-# Controlling versioning on MST PC S3 bucket
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning
-resource "aws_s3_bucket_versioning" "Terra-S3-Bucket-PC-Versioning" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-# Set Object Lock to Enable and Default retention period as 31 days.
-# This provides WORM configuration for objects to create point-in-time snapshots of Prism Central configuration
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object_lock_configuration
-# In the context of AWS S3 Object Lock, there are two modes for retention: `GOVERNANCE` and `COMPLIANCE`.
-# `GOVERNANCE` mode allows users with specific permissions to override the retention settings.
-# This means that while the objects are protected under normal circumstances, a user with the `s3:BypassGovernanceRetention` permission can change 
-# the retention settings or delete the object before the retention period expires. This mode is useful when you want to protect objects from being deleted
-# or altered during the retention period, but still need the ability to do so in exceptional circumstances.
-# In the context of AWS S3 Object Lock, `COMPLIANCE` mode ensures that a protected object cannot be overwritten or
-# deleted by any user, including the root user in your AWS account. Once an object is locked in `COMPLIANCE` mode,
-# its retention mode cannot be changed, and its retention period cannot be shortened. 
-# This mode is typically used for regulatory compliance, where data must be preserved and not altered for a fixed period of time.
-resource "aws_s3_bucket_object_lock_configuration" "Terra-S3-Bucket-PC-Object-Lock" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id
-
-  rule {
-    default_retention {
-      mode = "GOVERNANCE"   # Should be COMPLIANCE for regulatory compliance
-      days = 31
-    }
-  }
-
-  depends_on = [ aws_s3_bucket_versioning.Terra-S3-Bucket-PC-Versioning ]
-}
-
-# Configure the Object Lifecycle rule to auto-delete older backup data, and the rule scope must be set to apply to all objects in the bucket.
-# Also, select the following Lifecycle rule actions:
-# - Expire current version of objects: set as 31 days
-# - Permanently delete noncurrent versions of objects: set Days after objects become noncurrent to 1 day.
-# - Delete expired object, delete markers, or incomplete multipart uploads: Number of days as 1 day.
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
-resource "aws_s3_bucket_lifecycle_configuration" "Terra-S3-Bucket-PC-Lifecycle" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id
-
-  rule {
-    id      = "AutoDeleteOlderBackupData"
-    status  = "Enabled"
-
-    expiration {
-      days = 31
-    }
-
-    noncurrent_version_expiration {
-      noncurrent_days = 1
-    }
-
-    abort_incomplete_multipart_upload { 
-      days_after_initiation  = 1
-    }
-  }
-}
-
-
-
-# Bucket for UVM backups
-resource "aws_s3_bucket" "Terra-S3-Bucket-UVM" {
-  bucket_prefix = "nutanix-clusters-mst-uvm"
-
-  tags = {
-    Name        = "nutanix-clusters-mst-uvm"
-  }
-}
-
-# Ensure that public access to MST UVM S3 buckets is blocked by default
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
-resource "aws_s3_bucket_public_access_block" "Terra-S3-Public-Access-Block-UVM" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id 
-
-  block_public_acls   = true
-  block_public_policy = true
-  ignore_public_acls  = true
-  restrict_public_buckets = true
-}
-
-# Controlling versioning on MST UVM S3 bucket
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning
-resource "aws_s3_bucket_versioning" "Terra-S3-Bucket-UVM-Versioning" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-# Set Object Lock to Enable and Default retention period as 31 days.
-# This provides WORM configuration for objects to create point-in-time snapshots of Prism Central configuration
-# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object_lock_configuration
-resource "aws_s3_bucket_object_lock_configuration" "Terra-S3-Bucket-UVM-Object-Lock" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id
-
-  rule {
-    default_retention {
-      mode = "GOVERNANCE"   # Should be COMPLIANCE for regulatory compliance
-      days = 31
-    }
-  }
-
-  depends_on = [ aws_s3_bucket_versioning.Terra-S3-Bucket-UVM-Versioning ]
-}
-
-# Configure the Object Lifecycle rule to auto-delete older backup data, and the rule scope must be set to apply to all objects in the bucket.
-# Also, select the following Lifecycle rule actions:
-# - Expire current version of objects: set as 31 days
-# - Permanently delete noncurrent versions of objects: set Days after objects become noncurrent to 1 day.
-# - Delete expired object, delete markers, or incomplete multipart uploads: Number of days as 1 day.
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
-resource "aws_s3_bucket_lifecycle_configuration" "Terra-S3-Bucket-UVM-Lifecycle" {
-  bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id
-
-  rule {
-    id      = "AutoDeleteOlderBackupData"
-    status  = "Enabled"
-
-    expiration {
-      days = 31
-    }
-
-    noncurrent_version_expiration {
-      noncurrent_days = 1
-    }
-
-    abort_incomplete_multipart_upload { 
-      days_after_initiation  = 1
-    }
-  }
-}
-
-
-
-
-# AWS Security Group for VPC
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group
-# resource "aws_default_security_group" "Terra-Security-Group-vpc" {
-#   vpc_id = aws_vpc.Terra-VPC.id
-
-#   ingress {
-#     protocol  = -1
-#     self      = true
-#     from_port = 0
-#     to_port   = 0
-#   }
-
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# }
-
-
-
-# AWS Security Group for management interfaces	
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
-
-# resource "aws_security_group" "Terra-Security-Group-Mngt" {
-#   name        = "NC2-SG-User-Management"
-#   description = "Security Group for management interfaces"
-#   vpc_id      = aws_vpc.Terra-VPC.id
-#   tags = {
-#     Name = "NC2 User Management Security Group"
-#   }
-# }
-
-
-# AWS Security Group for Internal Management
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
-
-# resource "aws_security_group" "Terra-Security-Group-Internal-Mngt" {
-#   name        = "NC2-SG-Internal-Mngt"
-#   description = "Security Group for Internal Management"
-#   vpc_id      = aws_vpc.Terra-VPC.id
+# # Bucket for Prism Central backups
+# resource "aws_s3_bucket" "Terra-S3-Bucket-PC" {
+#   bucket_prefix = "nutanix-clusters-mst-pc"
 
 #   tags = {
-#     Name = "NC2 Internal Management Security Group"
+#     Name        = "nutanix-clusters-mst-pc"
+#   }
+# }
+
+# # Ensure that public access to MST PC  S3 buckets is blocked by default
+# # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
+# resource "aws_s3_bucket_public_access_block" "Terra-S3-Public-Access-Block-PC" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id 
+
+#   block_public_acls   = true
+#   block_public_policy = true
+#   ignore_public_acls  = true
+#   restrict_public_buckets = true
+# }
+
+# # Controlling versioning on MST PC S3 bucket
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning
+# resource "aws_s3_bucket_versioning" "Terra-S3-Bucket-PC-Versioning" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id
+#   versioning_configuration {
+#     status = "Enabled"
+#   }
+# }
+
+# # Set Object Lock to Enable and Default retention period as 31 days.
+# # This provides WORM configuration for objects to create point-in-time snapshots of Prism Central configuration
+# # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object_lock_configuration
+# # In the context of AWS S3 Object Lock, there are two modes for retention: `GOVERNANCE` and `COMPLIANCE`.
+# # `GOVERNANCE` mode allows users with specific permissions to override the retention settings.
+# # This means that while the objects are protected under normal circumstances, a user with the `s3:BypassGovernanceRetention` permission can change 
+# # the retention settings or delete the object before the retention period expires. This mode is useful when you want to protect objects from being deleted
+# # or altered during the retention period, but still need the ability to do so in exceptional circumstances.
+# # In the context of AWS S3 Object Lock, `COMPLIANCE` mode ensures that a protected object cannot be overwritten or
+# # deleted by any user, including the root user in your AWS account. Once an object is locked in `COMPLIANCE` mode,
+# # its retention mode cannot be changed, and its retention period cannot be shortened. 
+# # This mode is typically used for regulatory compliance, where data must be preserved and not altered for a fixed period of time.
+# resource "aws_s3_bucket_object_lock_configuration" "Terra-S3-Bucket-PC-Object-Lock" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id
+
+#   rule {
+#     default_retention {
+#       mode = "GOVERNANCE"   # Should be COMPLIANCE for regulatory compliance
+#       days = 31
+#     }
+#   }
+
+#   depends_on = [ aws_s3_bucket_versioning.Terra-S3-Bucket-PC-Versioning ]
+# }
+
+# # Configure the Object Lifecycle rule to auto-delete older backup data, and the rule scope must be set to apply to all objects in the bucket.
+# # Also, select the following Lifecycle rule actions:
+# # - Expire current version of objects: set as 31 days
+# # - Permanently delete noncurrent versions of objects: set Days after objects become noncurrent to 1 day.
+# # - Delete expired object, delete markers, or incomplete multipart uploads: Number of days as 1 day.
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
+# resource "aws_s3_bucket_lifecycle_configuration" "Terra-S3-Bucket-PC-Lifecycle" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-PC.id
+
+#   rule {
+#     id      = "AutoDeleteOlderBackupData"
+#     status  = "Enabled"
+
+#     expiration {
+#       days = 31
+#     }
+
+#     noncurrent_version_expiration {
+#       noncurrent_days = 1
+#     }
+
+#     abort_incomplete_multipart_upload { 
+#       days_after_initiation  = 1
+#     }
 #   }
 # }
 
 
-# AWS Security Group for PC VMs 
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
 
-# resource "aws_security_group" "Terra-Security-Group-PC" {
-#   name        = "NC2-SG-PC"
-#   description = "Security Group for PC VMs"
-#   vpc_id      = aws_vpc.Terra-VPC.id
+# # Bucket for UVM backups
+# resource "aws_s3_bucket" "Terra-S3-Bucket-UVM" {
+#   bucket_prefix = "nutanix-clusters-mst-uvm"
 
 #   tags = {
-#     Name = "NC2 PC VMs Security Group"
+#     Name        = "nutanix-clusters-mst-uvm"
+#   }
+# }
+
+# # Ensure that public access to MST UVM S3 buckets is blocked by default
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block
+# resource "aws_s3_bucket_public_access_block" "Terra-S3-Public-Access-Block-UVM" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id 
+
+#   block_public_acls   = true
+#   block_public_policy = true
+#   ignore_public_acls  = true
+#   restrict_public_buckets = true
+# }
+
+# # Controlling versioning on MST UVM S3 bucket
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning
+# resource "aws_s3_bucket_versioning" "Terra-S3-Bucket-UVM-Versioning" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id
+#   versioning_configuration {
+#     status = "Enabled"
+#   }
+# }
+
+# # Set Object Lock to Enable and Default retention period as 31 days.
+# # This provides WORM configuration for objects to create point-in-time snapshots of Prism Central configuration
+# # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object_lock_configuration
+# resource "aws_s3_bucket_object_lock_configuration" "Terra-S3-Bucket-UVM-Object-Lock" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id
+
+#   rule {
+#     default_retention {
+#       mode = "GOVERNANCE"   # Should be COMPLIANCE for regulatory compliance
+#       days = 31
+#     }
+#   }
+
+#   depends_on = [ aws_s3_bucket_versioning.Terra-S3-Bucket-UVM-Versioning ]
+# }
+
+# # Configure the Object Lifecycle rule to auto-delete older backup data, and the rule scope must be set to apply to all objects in the bucket.
+# # Also, select the following Lifecycle rule actions:
+# # - Expire current version of objects: set as 31 days
+# # - Permanently delete noncurrent versions of objects: set Days after objects become noncurrent to 1 day.
+# # - Delete expired object, delete markers, or incomplete multipart uploads: Number of days as 1 day.
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
+# resource "aws_s3_bucket_lifecycle_configuration" "Terra-S3-Bucket-UVM-Lifecycle" {
+#   bucket = aws_s3_bucket.Terra-S3-Bucket-UVM.id
+
+#   rule {
+#     id      = "AutoDeleteOlderBackupData"
+#     status  = "Enabled"
+
+#     expiration {
+#       days = 31
+#     }
+
+#     noncurrent_version_expiration {
+#       noncurrent_days = 1
+#     }
+
+#     abort_incomplete_multipart_upload { 
+#       days_after_initiation  = 1
+#     }
 #   }
 # }
 
 
-# AWS Security Group for UVMs 
-# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
 
-# resource "aws_security_group" "Terra-Security-Group-UVM1" {
-#   name        = "NC2-SG-UVM1"
-#   description = "Security Group for UVMs"
-#   vpc_id      = aws_vpc.Terra-VPC.id
 
-#   tags = {
-#     Name = "NC2 User VMs Security Group"
-#   }
-# }
+# # AWS Security Group for VPC
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group
+# # resource "aws_default_security_group" "Terra-Security-Group-vpc" {
+# #   vpc_id = aws_vpc.Terra-VPC.id
+
+# #   ingress {
+# #     protocol  = -1
+# #     self      = true
+# #     from_port = 0
+# #     to_port   = 0
+# #   }
+
+# #   egress {
+# #     from_port   = 0
+# #     to_port     = 0
+# #     protocol    = "-1"
+# #     cidr_blocks = ["0.0.0.0/0"]
+# #   }
+# # }
+
+
+
+# # AWS Security Group for management interfaces	
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+
+# # resource "aws_security_group" "Terra-Security-Group-Mngt" {
+# #   name        = "NC2-SG-User-Management"
+# #   description = "Security Group for management interfaces"
+# #   vpc_id      = aws_vpc.Terra-VPC.id
+# #   tags = {
+# #     Name = "NC2 User Management Security Group"
+# #   }
+# # }
+
+
+# # AWS Security Group for Internal Management
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+
+# # resource "aws_security_group" "Terra-Security-Group-Internal-Mngt" {
+# #   name        = "NC2-SG-Internal-Mngt"
+# #   description = "Security Group for Internal Management"
+# #   vpc_id      = aws_vpc.Terra-VPC.id
+
+# #   tags = {
+# #     Name = "NC2 Internal Management Security Group"
+# #   }
+# # }
+
+
+# # AWS Security Group for PC VMs 
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+
+# # resource "aws_security_group" "Terra-Security-Group-PC" {
+# #   name        = "NC2-SG-PC"
+# #   description = "Security Group for PC VMs"
+# #   vpc_id      = aws_vpc.Terra-VPC.id
+
+# #   tags = {
+# #     Name = "NC2 PC VMs Security Group"
+# #   }
+# # }
+
+
+# # AWS Security Group for UVMs 
+# # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+
+# # resource "aws_security_group" "Terra-Security-Group-UVM1" {
+# #   name        = "NC2-SG-UVM1"
+# #   description = "Security Group for UVMs"
+# #   vpc_id      = aws_vpc.Terra-VPC.id
+
+# #   tags = {
+# #     Name = "NC2 User VMs Security Group"
+# #   }
+# # }
 
 
