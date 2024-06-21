@@ -36,6 +36,8 @@ aws ec2 describe-regions --output table
 The following command gives the region actually used by the CLI regardless of whether environment variables are or are not set:
 
 ```bash
+aws configure get region
+
 aws ec2 describe-availability-zones --output table --query 'AvailabilityZones[0].[RegionName]'
 ```
 
@@ -43,6 +45,12 @@ Check that the region and Bare-metal instance you choose are supported for Nutan
 
 
 If you want to define your own IP ranges, edit [main.tf](main.tf)  (I will change that later to put everything as a variable)
+
+Before deploying check on which AWS Account you are connected :
+
+```bash
+aws sts get-caller-identity
+```
  
 
 1. Terraform Init phase  
