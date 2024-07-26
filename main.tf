@@ -18,6 +18,11 @@
 
 # An AWS VPC
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc
+# Ensure you do not use 192.168.5.0/24 CIDR for the VPC to deploy NC2 on AWS
+# All Nutanix nodes use that CIDR to communicate between the CVM and the installed hypervisor
+# The recommended CIDR range is between /16 and /25
+# NC2 supports the network CIDR sizing limits enforced by AWS.
+# Ensure the CIDR block is within the private IP ranges
 
 resource "aws_vpc" "Terra-VPC" {
 
@@ -52,6 +57,7 @@ resource "aws_subnet" "Terra-Public-Subnet" {
 
 
 # A private subnet for cluster management traffic
+# Shared across multiple clusters for centralized management (except if you have a NC2 cluster with FVN)
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet 
 
 resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
@@ -67,6 +73,10 @@ resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
 
 
 # One or more private subnets for User VM (UVM) traffic
+# User VM Subnets: Dedicated to individual clusters for hosting user VMs
+# User VM subnet sizing would depend on the number of user VMs deployed
+# The user VM subnet CIDR can have a netmask between /16 and /25 as allowed
+# by the size of the VPC CIDR
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet  
 
 resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
@@ -82,6 +92,7 @@ resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
 
 
 # One or more private subnets for Prism Central VM and MST
+# Dedicated to Prism Central for management and orchestration purposes.
 # Subnets used for Prism Central and Multicloud Snapshot Technology (MST) must be different
 # than the UVM subnet
 # cf. https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-cluster-protect-requirements-c.html
@@ -99,7 +110,30 @@ resource "aws_subnet" "Terra-Private-Subnet-PC" {
 }
 
 
+# One subnet for Flow Virtual Networking
+# Subnets used for Flow Virtual Networking (FVN)
+# This subnet cannot be shared and only one cluster can be deployed per VPC with Flow Virtual Networking
+# https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-aws-create-resources-manual-c.html
+# https://www.nutanix.com/blog/flow-virtual-networking-is-now-supported-for-nutanix-cloud-clusters-on-aws 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet  
+
+resource "aws_subnet" "Terra-Private-Subnet-FVN" {
+  vpc_id                  = aws_vpc.Terra-VPC.id
+  cidr_block              = "10.0.5.0/24"   # CIDR requirements: /16 and /25 including both
+  availability_zone       = join("", [var.AWS_REGION,"a"])                       
+
+  tags = {
+    ## join function https://developer.hashicorp.com/terraform/language/functions/join
+    Name = join("", ["NC2-PrivateSubnet-FVN-",var.AWS_REGION,"a"])
+  }
+}
+
+
+
 # Internet Gateway
+# To establish communication between your VPC and the internet
+# Instances in the public subnet can communicate directly with the Internet
+# https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway
 resource "aws_internet_gateway" "Terra-Internet-Gateway" {
   vpc_id = aws_vpc.Terra-VPC.id
@@ -125,10 +159,14 @@ resource "aws_eip" "Terra-EIP" {
 
 
 # NAT Gateway
+# You can use a NAT gateway so that instances in a private subnet can connect to services
+#  outside your VPC but external services cannot initiate a connection with those instances
+# cf. https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway
 resource "aws_nat_gateway" "Terra-AWS-NAT-GW" {
-  allocation_id = aws_eip.Terra-EIP.id
-  subnet_id     = aws_subnet.Terra-Public-Subnet.id
+  allocation_id     = aws_eip.Terra-EIP.id
+  subnet_id         = aws_subnet.Terra-Public-Subnet.id
+  connectivity_type = "public"
   tags = {
     Name = "NC2-NAT-GW"
   }
@@ -140,6 +178,8 @@ resource "aws_nat_gateway" "Terra-AWS-NAT-GW" {
 
 
 # Route Table for Public Subnet
+# The route table associated with the public subnet has a default route (0.0.0.0/0)
+# pointing to the Internet Gateway (IGW)
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
 
 resource "aws_route_table" "Terra-Public-Route-Table" {
@@ -157,6 +197,8 @@ resource "aws_route_table" "Terra-Public-Route-Table" {
 
 
 # Route Table Association for Public Subnet
+# This route table is associated with the public subnet, enabling instances within
+# this subnet to have direct internet access
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association
 resource "aws_route_table_association" "Terra-Public-Route-Table-Association" {
   subnet_id      = aws_subnet.Terra-Public-Subnet.id
@@ -168,6 +210,8 @@ resource "aws_route_table_association" "Terra-Public-Route-Table-Association" {
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
 # this is the route table for the private subnets, to go to on-premises network or Internet 
 # (communication of cluster with NC2 portal)
+# Private Subnets that do not have direct internet access
+# Instances in these subnets can communicate with the internet through a NAT gateway.
 
 resource "aws_route_table" "Terra-Private-Route-Table" {
   vpc_id = aws_vpc.Terra-VPC.id
@@ -209,6 +253,12 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-PC
   route_table_id = aws_route_table.Terra-Private-Route-Table.id
 }
 
+
+# Route Table Association for Private Subnet FVN
+resource "aws_route_table_association" "Terra-Private-Route-Table-Association-FVN" {
+  subnet_id      = aws_subnet.Terra-Private-Subnet-FVN.id
+  route_table_id = aws_route_table.Terra-Private-Route-Table.id
+}
 
 
 ### If there is a Web proxy configured #################

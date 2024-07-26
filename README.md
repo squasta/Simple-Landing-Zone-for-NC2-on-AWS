@@ -17,6 +17,8 @@ This repo contains terraform code to deploy a simple network landing zone for Nu
 
 You can also clone this repo in your AWS Cloud Shell (https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html) and install terraform in your cloud shell.
 
+For additional information about creating manually your AWS for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-aws-create-resources-manual-c.html
+
 
 ## Landing Zone architecture
 
