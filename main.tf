@@ -2,7 +2,7 @@
 # Nutanix NC2  pre requisite
 # https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-infrastructure-deployment-c.html
 
-
+# https://portal.nutanix.com/page/documents/solutions/details?targetId=BP-2202-NC2-AWS-Networking:configuring-nutanix-cloud-clusters-on-amazon-web-services.html 
 # https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-getting-started-c.html
 # NC2 CIDR requirements
 # You must use the following range of IP addresses for the VPCs and subnets:
@@ -45,7 +45,7 @@ resource "aws_vpc" "Terra-VPC" {
 
 resource "aws_subnet" "Terra-Public-Subnet" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.1.0/24"   # CIDR requirements: /16 and /25 including both
+  cidr_block              = "10.0.1.0/24"   # CIDR requirements: /16 and /23 including both
                                             # a /28 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
   availability_zone       = join("", [var.AWS_REGION,"a"])                
   map_public_ip_on_launch = true
@@ -125,6 +125,21 @@ resource "aws_subnet" "Terra-Private-Subnet-FVN" {
   tags = {
     ## join function https://developer.hashicorp.com/terraform/language/functions/join
     Name = join("", ["NC2-PrivateSubnet-FVN-",var.AWS_REGION,"a"])
+  }
+}
+
+
+# One subnet for Jumpbox VM
+# 
+
+resource "aws_subnet" "Terra-Private-Subnet-Jumpbox" {
+  vpc_id                  = aws_vpc.Terra-VPC.id
+  cidr_block              = "10.0.6.0/24"   # CIDR requirements: /16 and /25 including both
+  availability_zone       = join("", [var.AWS_REGION,"a"])                       
+
+  tags = {
+    ## join function https://developer.hashicorp.com/terraform/language/functions/join
+    Name = join("", ["NC2-PrivateSubnet-Jumbox-",var.AWS_REGION,"a"])
   }
 }
 
@@ -259,6 +274,14 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-FV
   subnet_id      = aws_subnet.Terra-Private-Subnet-FVN.id
   route_table_id = aws_route_table.Terra-Private-Route-Table.id
 }
+
+
+# Route Table Association for Private Subnet Jumpbox
+resource "aws_route_table_association" "Terra-Private-Route-Table-Association-Jumbox" {
+  subnet_id      = aws_subnet.Terra-Private-Subnet-Jumpbox.id
+  route_table_id = aws_route_table.Terra-Private-Route-Table.id
+}
+
 
 
 ### If there is a Web proxy configured #################
