@@ -26,7 +26,7 @@ For additional information about creating manually your AWS for Nutanix Cloud Cl
 
 If you prefer to use Flow Networking (supported in AOS >=6.8), additional subnets are required for Prism Central and Flow Networking. An EC2 instances in a dedicated subnet is also available to be use as a jumbox.
 
-<img width='800' src='./NC2-AWS-LZ-Full.png'/> 
+<img width='800' src='./images/NC2-AWS-LZ-Full.png'/> 
 
 
 ## Step by step operations
