@@ -120,7 +120,7 @@ terraform destroy --var-file=configuration.tfvars
 
 It's very cheap to test and customize this simple landing zone.
 
-You can use **infracost** (available on https://www.infracost.io/) to check the estimate price for 1 month. Here is an exemple for North Virginia (us-east-1) AWS Region
+You can use **infracost** (available on https://www.infracost.io/) to check the estimate price for 1 month. Here is an exemple for Frankfurt (eu-central-1) AWS Region
 
 <img width='800' src='./images/InfracostNC2LDZAWS.png'/> 
 
