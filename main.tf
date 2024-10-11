@@ -144,6 +144,59 @@ resource "aws_subnet" "Terra-Private-Subnet-Jumpbox" {
 }
 
 
+# DRP Cluster  - A private subnet for cluster management traffic
+# Shared across multiple clusters for centralized management (except if you have a NC2 cluster with FVN)
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet 
+
+resource "aws_subnet" "Terra-DRP-Private-Subnet-Mngt" {
+  vpc_id                  = aws_vpc.Terra-VPC.id
+  cidr_block              = "10.0.12.0/24"    # CIDR requirements: /16 and /25 including both
+                                             # a /25 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
+  availability_zone       = join("", [var.AWS_REGION,"a"])                 
+
+  tags = {
+    Name = join("", ["DRP-NC2-PrivateMgntSubnet-",var.AWS_REGION,"a"])
+  }
+}
+
+
+# DRP-Cluster - One or more private subnets for User VM (UVM) traffic
+# User VM Subnets: Dedicated to individual clusters for hosting user VMs
+# User VM subnet sizing would depend on the number of user VMs deployed
+# The user VM subnet CIDR can have a netmask between /16 and /25 as allowed
+# by the size of the VPC CIDR
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet  
+
+resource "aws_subnet" "Terra-DRP-Private-Subnet-UVM1" {
+  vpc_id                  = aws_vpc.Terra-VPC.id
+  cidr_block              = "10.0.13.0/24"   # CIDR requirements: /16 and /25 including both
+  availability_zone       = join("", [var.AWS_REGION,"a"])                   
+
+  tags = {
+    ## join function https://developer.hashicorp.com/terraform/language/functions/join
+    Name = join("", ["DRP-NC2-PrivateSubnet-UVM1-",var.AWS_REGION,"a"])
+  }
+}
+
+
+# One or more private subnets for Prism Central VM and MST
+# Dedicated to Prism Central for management and orchestration purposes.
+# Subnets used for Prism Central and Multicloud Snapshot Technology (MST) must be different
+# than the UVM subnet
+# cf. https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-cluster-protect-requirements-c.html
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet  
+
+resource "aws_subnet" "Terra-DRP-Private-Subnet-PC" {
+  vpc_id                  = aws_vpc.Terra-VPC.id
+  cidr_block              = "10.0.14.0/24"   # CIDR requirements: /16 and /25 including both
+  availability_zone       = join("", [var.AWS_REGION,"a"])                       
+
+  tags = {
+    ## join function https://developer.hashicorp.com/terraform/language/functions/join
+    Name = join("", ["DRP-NC2-PrivateSubnet-PC-",var.AWS_REGION,"a"])
+  }
+}
+
 
 # Internet Gateway
 # To establish communication between your VPC and the internet
@@ -281,6 +334,32 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-Ju
   subnet_id      = aws_subnet.Terra-Private-Subnet-Jumpbox.id
   route_table_id = aws_route_table.Terra-Private-Route-Table.id
 }
+
+
+# Route Table Association for DRP Private Subnet Management
+# cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association
+resource "aws_route_table_association" "Terra-Private-Route-Table-Association-DRP-Mngt" {
+  subnet_id      = aws_subnet.Terra-DRP-Private-Subnet-Mngt.id
+  route_table_id = aws_route_table.Terra-Private-Route-Table.id
+}
+
+
+# Route Table Association for DRP Private Subnet UVM1
+resource "aws_route_table_association" "Terra-Private-Route-Table-Association-DRP-UVM1" {
+  subnet_id      = aws_subnet.Terra-DRP-Private-Subnet-UVM1.id
+  route_table_id = aws_route_table.Terra-Private-Route-Table.id
+}
+
+
+# Route Table Association for DRP Private Subnet PC
+resource "aws_route_table_association" "Terra-Private-Route-Table-Association-DRP-PC" {
+  subnet_id      = aws_subnet.Terra-DRP-Private-Subnet-PC.id
+  route_table_id = aws_route_table.Terra-Private-Route-Table.id
+}
+
+
+
+
 
 
 
