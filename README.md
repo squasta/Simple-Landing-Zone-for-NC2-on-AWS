@@ -149,7 +149,7 @@ You can use **infracost** (available on https://www.infracost.io/) to check the 
 
 
 
-## Futures improvements on my roadmap
+## Future improvements on my roadmap
 
 - Add a variable to define AWS Availability Zone
 - Add a Linux VM for Jumbox
