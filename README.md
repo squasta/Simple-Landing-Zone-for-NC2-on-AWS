@@ -35,6 +35,8 @@ This landing zone also include the option to have a dedicated subnet and a virtu
 
 ## Step by step operations
 
+Clone this repo.
+
 Edit [configuration.tfvars](configuration.tfvars) to define your AWS resources names or tags, your AWS region, AMI for Jumpbox Virtual Machine...
 
 <img width='800' src='./images/configurationtfvars.png'/> 
@@ -70,7 +72,7 @@ aws ec2 describe-images --region eu-central-1 --owners amazon --filters "Name=na
 <img width='800' src='./images/AWSCLI-GetAMIID.png'/>  
 
 
-If you want to define your own IP ranges for AWS VPC and subnets, check [variables.tf](variables.tf) to be sure of valid CIDR value per resource. Avoid IP range overlapping with your on-premises IP ranges if you plan to have interconnection through Site to Site VPN or [DirectConnect](https://aws.amazon.com/directconnect/)
+If you want to define your own IP ranges for AWS VPC and subnets, check [variables.tf](variables.tf) to be sure of valid CIDR value per resource. Avoid IP ranges overlapping with your on-premises IP ranges if you plan to have interconnection through Site to Site VPN or [DirectConnect](https://aws.amazon.com/directconnect/)
 
 Before deploying check on which AWS Account you are connected :
 
