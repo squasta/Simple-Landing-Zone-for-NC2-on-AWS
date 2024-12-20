@@ -11,9 +11,9 @@ This repo contains terraform code to deploy a simple network landing zone for Nu
 
 - An AWS Account with enough privileges (create Role, ...)
 - AWS CLI 2.15 or >: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html or https://github.com/aws/aws-cli/tree/v2  
-    - how to configure AWS CLI with your account https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html?icmpid=docs_sso_user_portal
+    - [how to configure AWS CLI with your account](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html?icmpid=docs_sso_user_portal)
 - Terraform CLI 1.5 or > : <https://www.terraform.io/downloads.html>
-    - Best practices for using the Terraform AWS Provider https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/introduction.html
+    - [Best practices for using the Terraform AWS Provider](https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/introduction.html)
 
 You can also clone this repo in your [AWS Cloud Shell](https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html) and [install terraform in your cloud shell](https://dev.to/aws-builders/how-to-install-terraform-on-aws-cloudshell-5had).
 
