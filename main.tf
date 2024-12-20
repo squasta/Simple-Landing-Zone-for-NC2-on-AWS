@@ -26,7 +26,7 @@
 
 resource "aws_vpc" "Terra-VPC" {
 
-  cidr_block       = "10.0.0.0/16"   # CIDR requirements: /16 and /25 including both
+  cidr_block       = var.VPC_CIDR  # CIDR requirements: /16 and /25 including both
   instance_tenancy = "default"
   # if you want to use internal proxy for your NC2 cluster, you need to enable DNS hostnames
   # and DNS support. In any case, NC2 documentation recommends to enable these settings.
@@ -45,7 +45,7 @@ resource "aws_vpc" "Terra-VPC" {
 
 resource "aws_subnet" "Terra-Public-Subnet" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.1.0/24"   # CIDR requirements: /16 and /23 including both
+  cidr_block              = var.PUBLIC_SUBNET_CIDR  # CIDR requirements: /16 and /23 including both
                                             # a /28 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
   availability_zone       = join("", [var.AWS_REGION,"a"])                
   map_public_ip_on_launch = true
@@ -62,7 +62,7 @@ resource "aws_subnet" "Terra-Public-Subnet" {
 
 resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.2.0/24"    # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_MGMT_CIDR   # CIDR requirements: /16 and /25 including both
                                              # a /25 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
   availability_zone       = join("", [var.AWS_REGION,"a"])                 
 
@@ -81,7 +81,7 @@ resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
 
 resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.3.0/24"   # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_UVM1_CIDR   # CIDR requirements: /16 and /25 including both
   availability_zone       = join("", [var.AWS_REGION,"a"])                   
 
   tags = {
@@ -100,7 +100,7 @@ resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
 
 resource "aws_subnet" "Terra-Private-Subnet-PC" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.4.0/24"   # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_PC  # CIDR requirements: /16 and /25 including both
   availability_zone       = join("", [var.AWS_REGION,"a"])                       
 
   tags = {
@@ -119,7 +119,7 @@ resource "aws_subnet" "Terra-Private-Subnet-PC" {
 
 resource "aws_subnet" "Terra-Private-Subnet-FVN" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.5.0/24"   # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_FVN  # CIDR requirements: /16 and /25 including both
   availability_zone       = join("", [var.AWS_REGION,"a"])                       
 
   tags = {
@@ -134,7 +134,7 @@ resource "aws_subnet" "Terra-Private-Subnet-FVN" {
 
 resource "aws_subnet" "Terra-Private-Subnet-Jumpbox" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.6.0/24"   # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_JUMPBOX  # CIDR requirements: /16 and /25 including both
   availability_zone       = join("", [var.AWS_REGION,"a"])                       
 
   tags = {
@@ -238,7 +238,6 @@ resource "aws_route_table" "Terra-Private-Route-Table" {
   ##### IMPORTANT #####
   # Insert here you internal routes to on-premises network or other networks
   #
-
   # propagating_vgws = [aws_vpn_gateway.Terra-VPN-GW.id]  # if you have a VPN connection to on-premises network
 
   tags = {

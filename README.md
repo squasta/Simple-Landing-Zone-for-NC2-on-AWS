@@ -31,33 +31,49 @@ If you prefer to use Flow Networking (supported in AOS >=6.8), additional subnet
 
 ## Step by step operations
 
-Edit [configuration.tfvars](configuration.tfvars) to define your AWS resources names or tags, your AWS region...
+Edit [configuration.tfvars](configuration.tfvars) to define your AWS resources names or tags, your AWS region, AMI for Jumpbox Virtual Machine...
+
+<img width='800' src='./images/configurationtfvars.png'/> 
+
+
+To do this, you can use the AWS CLI
 
 You can list your AWS region available using the following command :
 
 ```bash
 aws ec2 describe-regions --output table
 ```
+<img width='800' src='./images/GetAvailableRegions.png'/> 
 
 The following command gives the region actually used by the CLI regardless of whether environment variables are or are not set:
 
 ```bash
 aws configure get region
-
-aws ec2 describe-availability-zones --output table --query 'AvailabilityZones[0].[RegionName]'
 ```
 
-Check that the region and Bare-metal instance you choose are supported for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-xi-supported-regions-metals.html 
+<img width='800' src='./images/CheckAWSregion.png'/>  
+
+Check that the region and EC2 metal instance(s) you choose are supported for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-xi-supported-regions-metals.html 
+
+If you don't need a Jumpbox VM, you can delete [jumbox.tf](jumbox.tf) file.
+
+To get AMI ID  for the Windows Server Jumbox in the choosen region :
+
+```bash
+aws ec2 describe-images --region eu-central-1 --owners amazon --filters "Name=name,Values=Windows_Server-2022-English-Full-Base-*" "Name=state,Values=available" --query "Images | sort_by(@, &CreationDate) | [-1].ImageId" --output text
+```
+
+<img width='800' src='./images/AWSCLI-GetAMIID.png'/>  
 
 
-If you want to define your own IP ranges, edit [main.tf](main.tf)  (I will change that later to put everything as a variable)
+If you want to define your own IP ranges for AWS VPC and subnets, check [variables.tf](variables.tf) to be sure of valid CIDR value per resource. Avoid IP range overlapping with your on-premises IP ranges if you plan to have interconnection through Site to Site VPN or [DirectConnect](https://aws.amazon.com/directconnect/)
 
 Before deploying check on which AWS Account you are connected :
 
 ```bash
 aws sts get-caller-identity
 ```
- 
+
 
 1. Terraform Init phase  
 
@@ -79,7 +95,7 @@ terraform apply --var-file=configuration.tfvars
 
 4. Wait until the end of deployment (It should take around 2 minutes)
 
-5. Go to Nutanix Cloud Cluster (NC2) Portal https://cloud.nutanix.com and start your Nutanix Cluster deployment wizard.
+5. Go to Nutanix Cloud Cluster (NC2) Portal [https://cloud.nutanix.com](https://cloud.nutanix.com) and start your Nutanix Cluster deployment wizard.
 
 In Step 1 (**General**) choose the same AWS region and Availability Zone that you used in your terraform deployment
 
@@ -95,7 +111,7 @@ In Step 4 (**Network**) choose the VPC and Management Subnets created with terra
 
 8. When you want to destroy the Nutanix Cluster, use the NC2 Portal (https://cloud.nutanix.com) to terminate it.
 
-9. After cluster terminaison, you can destroy the landing zone using the following command : 
+9. After Nutanix cluster terminaison, you can destroy the landing zone using the following command : 
 ```bash
 terraform destroy --var-file=configuration.tfvars
 ```
@@ -124,7 +140,13 @@ You can use **infracost** (available on https://www.infracost.io/) to check the 
 
 <img width='800' src='./images/InfracostNC2LDZAWS.png'/> 
 
- :exclamation: Important : this landing zone cost estimation does not include the cost of AWS EC2 Metal instance(s) used as node(s) in the Nutanix Cluster. 
+ :exclamation: Important : this landing zone cost estimation does not include the cost of AWS EC2 Metal instance(s) used as node(s) in the Nutanix Cluster and network traffic. 
  Please have a look of metal instances prices here : https://aws.amazon.com/ec2/pricing/on-demand/. Pricing is per instance-hour consumed for each instance, from the time an instance is launched until it is terminated or stopped. Each partial instance-hour consumed will be billed per-second for Linux, Windows, Windows with SQL Enterprise, Windows with SQL Standard, and Windows with SQL Web Instances, and as a full hour for all other instance types.
 
 
+
+## Futures improvements on my roadmap
+
+- add a variable to define AWS Availability Zone
+- add a Linux VM for Jumbox
+- add a way to enable/disabled Windows and/or Linux Jumbox 

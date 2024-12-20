@@ -1,10 +1,11 @@
 
 
 resource "aws_instance" "Terra-Jumbox-Windows-Server" {
+    # Change to a valid Windows Server AMI ID for your region
     # to get latest Windows Server AMI ID, visit https://aws.amazon.com/windows/ and click on "Launch instance"
     # aws ec2 describe-images --region eu-central-1 --owners amazon --filters "Name=name,Values=Windows_Server-2022-English-Full-Base-*" "Name=state,Values=available" --query "Images | sort_by(@, &CreationDate) | [-1].ImageId" --output text
-    ami           = "ami-01647a9d15b15e0af"        # Change to a valid Windows Server AMI ID for your region
-    instance_type = "t3.medium"                    # t3.medium has 8 GB of RAM
+    ami           = var.WINDOWS_SERVER_2002_ENGLISHFULLBASE_AMI_ID   
+    instance_type = "t3.medium"     # t3.medium has 8 GB of RAM
 
     subnet_id = aws_subnet.Terra-Private-Subnet-Jumpbox.id
 
