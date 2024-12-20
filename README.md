@@ -11,48 +11,75 @@ This repo contains terraform code to deploy a simple network landing zone for Nu
 
 - An AWS Account with enough privileges (create Role, ...)
 - AWS CLI 2.15 or >: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html or https://github.com/aws/aws-cli/tree/v2  
-    - how to configure AWS CLI with your account https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html?icmpid=docs_sso_user_portal
+    - [how to configure AWS CLI with your account](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html?icmpid=docs_sso_user_portal)
 - Terraform CLI 1.5 or > : <https://www.terraform.io/downloads.html>
-    - Best practices for using the Terraform AWS Provider https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/introduction.html
+    - [Best practices for using the Terraform AWS Provider](https://docs.aws.amazon.com/prescriptive-guidance/latest/terraform-aws-provider-best-practices/introduction.html)
 
-You can also clone this repo in your AWS Cloud Shell (https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html) and install terraform in your cloud shell.
+You can also clone this repo in your [AWS Cloud Shell](https://docs.aws.amazon.com/cloudshell/latest/userguide/vm-specs.html) and [install terraform in your cloud shell](https://dev.to/aws-builders/how-to-install-terraform-on-aws-cloudshell-5had).
 
 For additional information about creating manually your AWS for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-aws-create-resources-manual-c.html
 
 
-## Landing Zone architecture
+## Landing Zone architecture(s)
+
+If you want to use [**Native AWS VPC integration**](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-nc2-on-aws-architecture-c.html) and testing 2 Nutanix Cloud Clusters with Nutanix Disaster Recovery this is the basic landing zone.
 
 <img width='800' src='./images/LZ-NC2AWS-with-DR.png'/>  
 
+IP ranges here are for example, you can define yours.
+
+This landing zone also include the option to have a dedicated subnet and a virtual machine to use as a jumbox. All AWS resources related to Jumbox are in [jumbox.tf](jumbox.tf) file.
+
+<img width='800' src='./images/LZ-NC2AWS-with-DR-with-jumbox.png'/>  
+
+
 ## Step by step operations
 
-Edit [configuration.tfvars](configuration.tfvars) to define your AWS resources names or tags, your AWS region...
+Clone this repo.
 
-You can list your AWS region available using the following command :
+Edit [configuration.tfvars](configuration.tfvars) to define your AWS resources names or tags, your AWS region, AMI for Jumpbox Virtual Machine...
+
+<img width='800' src='./images/configurationtfvars.png'/> 
+
+
+To get these information, you can use the [AWS CLI](https://aws.amazon.com/cli/) on your workstation or in [AWS Cloud Shell](https://aws.amazon.com/cloudshell/)
+
+You can list your AWS regions available using the following command :
 
 ```bash
 aws ec2 describe-regions --output table
 ```
+<img width='800' src='./images/GetAvailableRegions.png'/> 
 
 The following command gives the region actually used by the CLI regardless of whether environment variables are or are not set:
 
 ```bash
 aws configure get region
-
-aws ec2 describe-availability-zones --output table --query 'AvailabilityZones[0].[RegionName]'
 ```
 
-Check that the region and Bare-metal instance you choose are supported for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-xi-supported-regions-metals.html 
+<img width='800' src='./images/CheckAWSregion.png'/>  
+
+Check that the region and EC2 metal instance(s) you choose are supported for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-xi-supported-regions-metals.html 
+
+If you don't need a Jumpbox VM and its associated resources, you can delete [jumbox.tf](jumbox.tf) file.
+
+To get AMI ID  for the Windows Server Jumbox in the choosen region :
+
+```bash
+aws ec2 describe-images --region eu-central-1 --owners amazon --filters "Name=name,Values=Windows_Server-2022-English-Full-Base-*" "Name=state,Values=available" --query "Images | sort_by(@, &CreationDate) | [-1].ImageId" --output text
+```
+
+<img width='800' src='./images/AWSCLI-GetAMIID.png'/>  
 
 
-If you want to define your own IP ranges, edit [main.tf](main.tf)  (I will change that later to put everything as a variable)
+If you want to define your own IP ranges for AWS VPC and subnets, check [variables.tf](variables.tf) to be sure of valid CIDR value per resource. Avoid IP ranges overlapping with your on-premises IP ranges if you plan to have interconnection through Site to Site VPN or [DirectConnect](https://aws.amazon.com/directconnect/)
 
 Before deploying check on which AWS Account you are connected :
 
 ```bash
 aws sts get-caller-identity
 ```
- 
+
 
 1. Terraform Init phase  
 
@@ -74,7 +101,7 @@ terraform apply --var-file=configuration.tfvars
 
 4. Wait until the end of deployment (It should take around 2 minutes)
 
-5. Go to Nutanix Cloud Cluster (NC2) Portal https://cloud.nutanix.com and start your Nutanix Cluster deployment wizard.
+5. Go to Nutanix Cloud Cluster (NC2) Portal [https://cloud.nutanix.com](https://cloud.nutanix.com) and start your Nutanix Cluster deployment wizard.
 
 In Step 1 (**General**) choose the same AWS region and Availability Zone that you used in your terraform deployment
 
@@ -84,13 +111,13 @@ In Step 4 (**Network**) choose the VPC and Management Subnets created with terra
 
 <img width='800' src='./images/NC2WizStep4.png'/>
 
-6. After the deployment of the cluster is successfull, you can add connectivity with on-premises or other AWS VPC or services by peering an Transit VPC . If you enabled a bastion and a Jumpbox VM, you can login to the Jumbox VM and connect Prism Element or Prism Central through a web browser.
+6. After the deployment of the cluster is successfull, you can add connectivity with on-premises or other AWS VPC or services by peering [a Transit VPC](https://docs.aws.amazon.com/whitepapers/latest/aws-vpc-connectivity-options/transit-vpc-option.html) . If you enabled a bastion and a Jumpbox VM, you can login to the Jumbox VM and connect Prism Element or Prism Central through a web browser.
 
 7. Use the solution and configure Nutanix features like categories, VM, replication...
 
 8. When you want to destroy the Nutanix Cluster, use the NC2 Portal (https://cloud.nutanix.com) to terminate it.
 
-9. After cluster terminaison, you can destroy the landing zone using the following command : 
+9. After Nutanix cluster terminaison, you can destroy the landing zone using the following command : 
 ```bash
 terraform destroy --var-file=configuration.tfvars
 ```
@@ -105,11 +132,6 @@ terraform destroy --var-file=configuration.tfvars
 <img width='800' src='./images/Network2.png '/> 
 
 
-### S3 buckets for Cluster Protect
-
-<img width='800' src='./images/S3bucketsforClusterProtect.png'/> 
-
-
 
 ## How much does it cost to test this landing zone ?
 
@@ -119,7 +141,14 @@ You can use **infracost** (available on https://www.infracost.io/) to check the 
 
 <img width='800' src='./images/InfracostNC2LDZAWS.png'/> 
 
- :exclamation: Important : this landing zone cost estimation does not include the cost of AWS EC2 Metal instance(s) used as node(s) in the Nutanix Cluster. 
+ :exclamation: Important : this landing zone cost estimation does not include the cost of AWS EC2 Metal instance(s) used as node(s) in the Nutanix Cluster and network traffic. 
  Please have a look of metal instances prices here : https://aws.amazon.com/ec2/pricing/on-demand/. Pricing is per instance-hour consumed for each instance, from the time an instance is launched until it is terminated or stopped. Each partial instance-hour consumed will be billed per-second for Linux, Windows, Windows with SQL Enterprise, Windows with SQL Standard, and Windows with SQL Web Instances, and as a full hour for all other instance types.
 
 
+
+## Future improvements on my roadmap
+
+- Add a variable to define AWS Availability Zone
+- Add a Linux VM for Jumbox
+- Add a way to enable/disabled Windows and/or Linux Jumbox
+- Add additional tags to every AWS resources 

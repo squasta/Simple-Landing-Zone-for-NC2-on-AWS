@@ -26,7 +26,7 @@
 
 resource "aws_vpc" "Terra-VPC" {
 
-  cidr_block       = "10.0.0.0/16"   # CIDR requirements: /16 and /25 including both
+  cidr_block       = var.VPC_CIDR   # CIDR requirements: /16 and /25 including both
   instance_tenancy = "default"
   # if you want to use internal proxy for your NC2 cluster, you need to enable DNS hostnames
   # and DNS support. In any case, NC2 documentation recommends to enable these settings.
@@ -45,7 +45,7 @@ resource "aws_vpc" "Terra-VPC" {
 
 resource "aws_subnet" "Terra-Public-Subnet" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.1.0/24"   # CIDR requirements: /16 and /23 including both
+  cidr_block              = var.PUBLIC_SUBNET_CIDR    # CIDR requirements: /16 and /23 including both
                                             # a /28 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
   availability_zone       = join("", [var.AWS_REGION,"a"])                
   map_public_ip_on_launch = true
@@ -62,7 +62,7 @@ resource "aws_subnet" "Terra-Public-Subnet" {
 
 resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.2.0/24"    # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_MGMT_CIDR   # CIDR requirements: /16 and /25 including both
                                              # a /25 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
   availability_zone       = join("", [var.AWS_REGION,"a"])                 
 
@@ -81,7 +81,7 @@ resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
 
 resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.3.0/24"   # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_UVM1_CIDR  # CIDR requirements: /16 and /25 including both
   availability_zone       = join("", [var.AWS_REGION,"a"])                   
 
   tags = {
@@ -100,7 +100,7 @@ resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
 
 resource "aws_subnet" "Terra-Private-Subnet-PC" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.4.0/24"   # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_PC   # CIDR requirements: /16 and /25 including both
   availability_zone       = join("", [var.AWS_REGION,"a"])                       
 
   tags = {
@@ -117,31 +117,16 @@ resource "aws_subnet" "Terra-Private-Subnet-PC" {
 # https://www.nutanix.com/blog/flow-virtual-networking-is-now-supported-for-nutanix-cloud-clusters-on-aws 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet  
 
-resource "aws_subnet" "Terra-Private-Subnet-FVN" {
-  vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.5.0/24"   # CIDR requirements: /16 and /25 including both
-  availability_zone       = join("", [var.AWS_REGION,"a"])                       
+# resource "aws_subnet" "Terra-Private-Subnet-FVN" {
+#   vpc_id                  = aws_vpc.Terra-VPC.id
+#   cidr_block              = "10.0.5.0/24"   # CIDR requirements: /16 and /25 including both
+#   availability_zone       = join("", [var.AWS_REGION,"a"])                       
 
-  tags = {
-    ## join function https://developer.hashicorp.com/terraform/language/functions/join
-    Name = join("", ["NC2-PrivateSubnet-FVN-",var.AWS_REGION,"a"])
-  }
-}
-
-
-# One subnet for Jumpbox VM
-# 
-
-resource "aws_subnet" "Terra-Private-Subnet-Jumpbox" {
-  vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.6.0/24"   # CIDR requirements: /16 and /25 including both
-  availability_zone       = join("", [var.AWS_REGION,"a"])                       
-
-  tags = {
-    ## join function https://developer.hashicorp.com/terraform/language/functions/join
-    Name = join("", ["NC2-PrivateSubnet-Jumbox-",var.AWS_REGION,"a"])
-  }
-}
+#   tags = {
+#     ## join function https://developer.hashicorp.com/terraform/language/functions/join
+#     Name = join("", ["NC2-PrivateSubnet-FVN-",var.AWS_REGION,"a"])
+#   }
+# }
 
 
 # DRP Cluster  - A private subnet for cluster management traffic
@@ -150,12 +135,12 @@ resource "aws_subnet" "Terra-Private-Subnet-Jumpbox" {
 
 resource "aws_subnet" "Terra-DRP-Private-Subnet-Mngt" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.12.0/24"    # CIDR requirements: /16 and /25 including both
+  cidr_block              = var.PRIVATE_SUBNET_DR_MGMT_CIDR    # CIDR requirements: /16 and /25 including both
                                              # a /25 CIDR should be enough. It's the value used if VPC is created through NC2 portal wizard
-  availability_zone       = join("", [var.AWS_REGION,"a"])                 
+  availability_zone       = join("", [var.AWS_REGION,"b"])                 
 
   tags = {
-    Name = join("", ["DRP-NC2-PrivateMgntSubnet-",var.AWS_REGION,"a"])
+    Name = join("", ["DRP-NC2-PrivateMgntSubnet-",var.AWS_REGION,"b"])
   }
 }
 
@@ -169,12 +154,12 @@ resource "aws_subnet" "Terra-DRP-Private-Subnet-Mngt" {
 
 resource "aws_subnet" "Terra-DRP-Private-Subnet-UVM1" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.13.0/24"   # CIDR requirements: /16 and /25 including both
-  availability_zone       = join("", [var.AWS_REGION,"a"])                   
+  cidr_block              = var.PRIVATE_SUBNET_DR_UVM1_CIDR   # CIDR requirements: /16 and /25 including both
+  availability_zone       = join("", [var.AWS_REGION,"b"])                   
 
   tags = {
     ## join function https://developer.hashicorp.com/terraform/language/functions/join
-    Name = join("", ["DRP-NC2-PrivateSubnet-UVM1-",var.AWS_REGION,"a"])
+    Name = join("", ["DRP-NC2-PrivateSubnet-UVM1-",var.AWS_REGION,"b"])
   }
 }
 
@@ -188,12 +173,12 @@ resource "aws_subnet" "Terra-DRP-Private-Subnet-UVM1" {
 
 resource "aws_subnet" "Terra-DRP-Private-Subnet-PC" {
   vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = "10.0.14.0/24"   # CIDR requirements: /16 and /25 including both
-  availability_zone       = join("", [var.AWS_REGION,"a"])                       
+  cidr_block              = var.PRIVATE_SUBNET_DR_PC   # CIDR requirements: /16 and /25 including both
+  availability_zone       = join("", [var.AWS_REGION,"b"])                       
 
   tags = {
     ## join function https://developer.hashicorp.com/terraform/language/functions/join
-    Name = join("", ["DRP-NC2-PrivateSubnet-PC-",var.AWS_REGION,"a"])
+    Name = join("", ["DRP-NC2-PrivateSubnet-PC-",var.AWS_REGION,"b"])
   }
 }
 
@@ -322,18 +307,11 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-PC
 }
 
 
-# Route Table Association for Private Subnet FVN
-resource "aws_route_table_association" "Terra-Private-Route-Table-Association-FVN" {
-  subnet_id      = aws_subnet.Terra-Private-Subnet-FVN.id
-  route_table_id = aws_route_table.Terra-Private-Route-Table.id
-}
-
-
-# Route Table Association for Private Subnet Jumpbox
-resource "aws_route_table_association" "Terra-Private-Route-Table-Association-Jumbox" {
-  subnet_id      = aws_subnet.Terra-Private-Subnet-Jumpbox.id
-  route_table_id = aws_route_table.Terra-Private-Route-Table.id
-}
+# # Route Table Association for Private Subnet FVN
+# resource "aws_route_table_association" "Terra-Private-Route-Table-Association-FVN" {
+#   subnet_id      = aws_subnet.Terra-Private-Subnet-FVN.id
+#   route_table_id = aws_route_table.Terra-Private-Route-Table.id
+# }
 
 
 # Route Table Association for DRP Private Subnet Management
