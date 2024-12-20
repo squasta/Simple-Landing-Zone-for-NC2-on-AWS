@@ -22,7 +22,7 @@ For additional information about creating manually your AWS for Nutanix Cloud Cl
 
 ## Landing Zone architecture
 
-<img width='800' src='./images/NC2-AWS-LZ.png'/>  
+<img width='800' src='./images/LZ-NC2AWS-NativeNetwork.png'/>  
 
 If you prefer to use Flow Networking (supported in AOS >=6.8), additional subnets are required for Prism Central and Flow Networking. An EC2 instances in a dedicated subnet is also available to be use as a jumbox.
 
@@ -126,7 +126,7 @@ terraform destroy --var-file=configuration.tfvars
 <img width='800' src='./images/Network2.png '/> 
 
 
-### S3 buckets for Cluster Protect
+### S3 buckets for Cluster Protect  [Optional - in comment in code]
 
 <img width='800' src='./images/S3bucketsforClusterProtect.png'/> 
 
