@@ -22,7 +22,7 @@ For additional information about creating manually your AWS for Nutanix Cloud Cl
 
 ## Landing Zone architecture(s)
 
-If you want to use **Native AWS VPC integration**, this is the basic landing zone 
+If you want to use [**Native AWS VPC integration**](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-nc2-on-aws-architecture-c.html), this is the basic landing zone. If you want to use [Nutanix Flow Networking](https://portal.nutanix.com/page/documents/solutions/details?targetId=TN-2028-Nutanix-Cloud-Clusters-on-AWS:flow-virtual-networking-on-aws.html) integration available in AOS 6.8 or more, **check FlowNetworking Branch in this repo**
 
 <img width='800' src='./images/LZ-NC2AWS-NativeNetwork.png'/>  
 
