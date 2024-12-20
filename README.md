@@ -36,9 +36,9 @@ Edit [configuration.tfvars](configuration.tfvars) to define your AWS resources n
 <img width='800' src='./images/configurationtfvars.png'/> 
 
 
-To do this, you can use the AWS CLI
+To get these information, you can use the [AWS CLI](https://aws.amazon.com/cli/) on your workstation or in [AWS Cloud Shell](https://aws.amazon.com/cloudshell/)
 
-You can list your AWS region available using the following command :
+You can list your AWS regions available using the following command :
 
 ```bash
 aws ec2 describe-regions --output table
@@ -105,7 +105,7 @@ In Step 4 (**Network**) choose the VPC and Management Subnets created with terra
 
 <img width='800' src='./images/NC2WizStep4.png'/>
 
-6. After the deployment of the cluster is successfull, you can add connectivity with on-premises or other AWS VPC or services by peering an Transit VPC . If you enabled a bastion and a Jumpbox VM, you can login to the Jumbox VM and connect Prism Element or Prism Central through a web browser.
+6. After the deployment of the cluster is successfull, you can add connectivity with on-premises or other AWS VPC or services by peering [a Transit VPC](https://docs.aws.amazon.com/whitepapers/latest/aws-vpc-connectivity-options/transit-vpc-option.html) . If you enabled a bastion and a Jumpbox VM, you can login to the Jumbox VM and connect Prism Element or Prism Central through a web browser.
 
 7. Use the solution and configure Nutanix features like categories, VM, replication...
 
