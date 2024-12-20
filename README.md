@@ -22,15 +22,18 @@ For additional information about creating manually your AWS for Nutanix Cloud Cl
 
 ## Landing Zone architecture(s)
 
-If you want to use [**Native AWS VPC integration**](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-nc2-on-aws-architecture-c.html), this is the basic landing zone. If you want to use [Nutanix Flow Networking](https://portal.nutanix.com/page/documents/solutions/details?targetId=TN-2028-Nutanix-Cloud-Clusters-on-AWS:flow-virtual-networking-on-aws.html) integration available in AOS 6.8 or more, **check FlowNetworking Branch in this repo**
+If you want to use [**Nutanix Flow Networking**](https://portal.nutanix.com/page/documents/solutions/details?targetId=TN-2028-Nutanix-Cloud-Clusters-on-AWS:flow-virtual-networking-on-aws.html) integration available in AOS 6.8 or more, this is the basic landing zone.
 
-<img width='800' src='./images/LZ-NC2AWS-NativeNetwork.png'/>  
+If you want to use [**Native AWS VPC integration**](https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-nc2-on-aws-architecture-c.html), then [check the main branch of this repo](https://github.com/squasta/Simple-Landing-Zone-for-NC2-on-AWS/tree/main).
+ 
+
+<img width='800' src='./images/LZ-NC2AWS-FlowNetwork.png'/>  
 
 IP ranges here are for example, you can define yours.
 
 This landing zone also include the option to have a dedicated subnet and a virtual machine to use as a jumbox. All AWS resources related to Jumbox are in [jumbox.tf](jumbox.tf) file.
 
-<img width='800' src='./images/LZ-NC2AWS-NativeNetwork-withJumbox.png'/>  
+<img width='800' src='./images/LZ-NC2AWS-FlowNetwork-withJumbox'/>  
 
 
 ## Step by step operations

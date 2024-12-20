@@ -9,7 +9,7 @@
 # VPC: between /16 and /25, including both
 #     Private management subnet: /16 and /25, including both
 #     Public subnet: /16 and /25 including both
-#     UVM subnets: /16 and /25, including both
+#     UVM subnets and FlowNetwork: /16 and /25, including both
 #         UVM subnet sizing would depend on the number of UVMs that would need to be deployed. 
 #         NC2 supports the network CIDR sizing limits enforced by AWS
 # Please don't overlap AWS CIDR with your on-premises network CIDR
@@ -79,16 +79,16 @@ resource "aws_subnet" "Terra-Private-Subnet-Mngt" {
 # by the size of the VPC CIDR
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet  
 
-resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
-  vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = var.PRIVATE_SUBNET_UVM1_CIDR   # CIDR requirements: /16 and /25 including both
-  availability_zone       = join("", [var.AWS_REGION,"a"])                   
+# resource "aws_subnet" "Terra-Private-Subnet-UVM1" {
+#   vpc_id                  = aws_vpc.Terra-VPC.id
+#   cidr_block              = var.PRIVATE_SUBNET_UVM1_CIDR   # CIDR requirements: /16 and /25 including both
+#   availability_zone       = join("", [var.AWS_REGION,"a"])                   
 
-  tags = {
-    ## join function https://developer.hashicorp.com/terraform/language/functions/join
-    Name = join("", ["NC2-PrivateSubnet-UVM1-",var.AWS_REGION,"a"])
-  }
-}
+#   tags = {
+#     ## join function https://developer.hashicorp.com/terraform/language/functions/join
+#     Name = join("", ["NC2-PrivateSubnet-UVM1-",var.AWS_REGION,"a"])
+#   }
+# }
 
 
 # One or more private subnets for Prism Central VM and MST
@@ -239,10 +239,10 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-Mn
 
 
 # Route Table Association for Private Subnet UVM1
-resource "aws_route_table_association" "Terra-Private-Route-Table-Association-UVM1" {
-  subnet_id      = aws_subnet.Terra-Private-Subnet-UVM1.id
-  route_table_id = aws_route_table.Terra-Private-Route-Table.id
-}
+# resource "aws_route_table_association" "Terra-Private-Route-Table-Association-UVM1" {
+#   subnet_id      = aws_subnet.Terra-Private-Subnet-UVM1.id
+#   route_table_id = aws_route_table.Terra-Private-Route-Table.id
+# }
 
 
 # Route Table Association for Private Subnet PC
