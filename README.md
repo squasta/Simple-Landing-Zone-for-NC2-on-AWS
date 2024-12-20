@@ -22,12 +22,7 @@ For additional information about creating manually your AWS for Nutanix Cloud Cl
 
 ## Landing Zone architecture
 
-<img width='800' src='./images/NC2-AWS-LZ.png'/>  
-
-If you prefer to use Flow Networking (supported in AOS >=6.8), additional subnets are required for Prism Central and Flow Networking. An EC2 instances in a dedicated subnet is also available to be use as a jumbox.
-
-<img width='800' src='./images/NC2-AWS-LZ-Full.png'/> 
-
+<img width='800' src='./images/LZ-NC2AWS-with-DR.png'/>  
 
 ## Step by step operations
 
