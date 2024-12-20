@@ -20,13 +20,15 @@ You can also clone this repo in your AWS Cloud Shell (https://docs.aws.amazon.co
 For additional information about creating manually your AWS for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-aws-create-resources-manual-c.html
 
 
-## Landing Zone architecture
+## Landing Zone architecture(s)
+
+If you want to use Native AWS VPC integration, this is the basic landing zone 
 
 <img width='800' src='./images/LZ-NC2AWS-NativeNetwork.png'/>  
 
-If you prefer to use Flow Networking (supported in AOS >=6.8), additional subnets are required for Prism Central and Flow Networking. An EC2 instances in a dedicated subnet is also available to be use as a jumbox.
+This landing zone also include the option to have a dedicated subnet and a virtual machine to use as a jumbox
 
-<img width='800' src='./images/NC2-AWS-LZ-Full.png'/> 
+<img width='800' src='./images/LZ-NC2AWS-NativeNetwork-withJumbox.png'/>  
 
 
 ## Step by step operations
