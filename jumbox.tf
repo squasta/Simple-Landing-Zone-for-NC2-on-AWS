@@ -1,4 +1,23 @@
 
+# One subnet for Jumpbox VM(s) to access the cluster / prism central and prism element
+resource "aws_subnet" "Terra-Private-Subnet-Jumpbox" {
+  vpc_id                  = aws_vpc.Terra-VPC.id
+  cidr_block              = var.PRIVATE_SUBNET_JUMPBOX  # CIDR requirements: /16 and /25 including both
+  availability_zone       = join("", [var.AWS_REGION,"a"])                       
+
+  tags = {
+    ## join function https://developer.hashicorp.com/terraform/language/functions/join
+    Name = join("", ["NC2-PrivateSubnet-Jumbox-",var.AWS_REGION,"a"])
+  }
+}
+
+
+# Route Table Association for Private Subnet Jumpbox
+resource "aws_route_table_association" "Terra-Private-Route-Table-Association-Jumbox" {
+  subnet_id      = aws_subnet.Terra-Private-Subnet-Jumpbox.id
+  route_table_id = aws_route_table.Terra-Private-Route-Table.id
+}
+
 
 resource "aws_instance" "Terra-Jumbox-Windows-Server" {
     # Change to a valid Windows Server AMI ID for your region

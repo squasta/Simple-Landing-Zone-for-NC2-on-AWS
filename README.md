@@ -22,11 +22,13 @@ For additional information about creating manually your AWS for Nutanix Cloud Cl
 
 ## Landing Zone architecture(s)
 
-If you want to use Native AWS VPC integration, this is the basic landing zone 
+If you want to use **Native AWS VPC integration**, this is the basic landing zone 
 
 <img width='800' src='./images/LZ-NC2AWS-NativeNetwork.png'/>  
 
-This landing zone also include the option to have a dedicated subnet and a virtual machine to use as a jumbox
+IP ranges here are for example, you can define yours.
+
+This landing zone also include the option to have a dedicated subnet and a virtual machine to use as a jumbox. All AWS resources related to Jumbox are in [jumbox.tf](jumbox.tf) file.
 
 <img width='800' src='./images/LZ-NC2AWS-NativeNetwork-withJumbox.png'/>  
 
@@ -57,7 +59,7 @@ aws configure get region
 
 Check that the region and EC2 metal instance(s) you choose are supported for Nutanix Cloud Cluster : https://portal.nutanix.com/page/documents/details?targetId=Nutanix-Clusters-AWS:aws-clusters-aws-xi-supported-regions-metals.html 
 
-If you don't need a Jumpbox VM, you can delete [jumbox.tf](jumbox.tf) file.
+If you don't need a Jumpbox VM and its associated resources, you can delete [jumbox.tf](jumbox.tf) file.
 
 To get AMI ID  for the Windows Server Jumbox in the choosen region :
 
@@ -149,6 +151,7 @@ You can use **infracost** (available on https://www.infracost.io/) to check the 
 
 ## Futures improvements on my roadmap
 
-- add a variable to define AWS Availability Zone
-- add a Linux VM for Jumbox
-- add a way to enable/disabled Windows and/or Linux Jumbox 
+- Add a variable to define AWS Availability Zone
+- Add a Linux VM for Jumbox
+- Add a way to enable/disabled Windows and/or Linux Jumbox
+- Add additional tags to every AWS resources 

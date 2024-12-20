@@ -129,22 +129,6 @@ resource "aws_subnet" "Terra-Private-Subnet-FVN" {
 }
 
 
-# One subnet for Jumpbox VM
-# 
-
-resource "aws_subnet" "Terra-Private-Subnet-Jumpbox" {
-  vpc_id                  = aws_vpc.Terra-VPC.id
-  cidr_block              = var.PRIVATE_SUBNET_JUMPBOX  # CIDR requirements: /16 and /25 including both
-  availability_zone       = join("", [var.AWS_REGION,"a"])                       
-
-  tags = {
-    ## join function https://developer.hashicorp.com/terraform/language/functions/join
-    Name = join("", ["NC2-PrivateSubnet-Jumbox-",var.AWS_REGION,"a"])
-  }
-}
-
-
-
 # Internet Gateway
 # To establish communication between your VPC and the internet
 # Instances in the public subnet can communicate directly with the Internet
@@ -271,13 +255,6 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-PC
 # Route Table Association for Private Subnet FVN
 resource "aws_route_table_association" "Terra-Private-Route-Table-Association-FVN" {
   subnet_id      = aws_subnet.Terra-Private-Subnet-FVN.id
-  route_table_id = aws_route_table.Terra-Private-Route-Table.id
-}
-
-
-# Route Table Association for Private Subnet Jumpbox
-resource "aws_route_table_association" "Terra-Private-Route-Table-Association-Jumbox" {
-  subnet_id      = aws_subnet.Terra-Private-Subnet-Jumpbox.id
   route_table_id = aws_route_table.Terra-Private-Route-Table.id
 }
 
