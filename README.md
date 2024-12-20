@@ -33,7 +33,7 @@ IP ranges here are for example, you can define yours.
 
 This landing zone also include the option to have a dedicated subnet and a virtual machine to use as a jumbox. All AWS resources related to Jumbox are in [jumbox.tf](jumbox.tf) file.
 
-<img width='800' src='./images/LZ-NC2AWS-FlowNetwork-withJumbox'/>  
+<img width='800' src='./images/LZ-NC2AWS-FlowNetwork-withJumbox.png'/>  
 
 
 ## Step by step operations
