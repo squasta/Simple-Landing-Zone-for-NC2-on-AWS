@@ -270,14 +270,17 @@ resource "aws_route_table_association" "Terra-Private-Route-Table-Association-FV
 
 # VPC Endpoint for S3
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint
-# resource "aws_vpc_endpoint" "Terra-VPC-Endpoint-S3" {
-#   vpc_id       = aws_vpc.Terra-VPC.id
-#   service_name = join("", ["com.amazonaws.",var.AWS_REGION,".s3"])    # ex: "com.amazonaws.us-west-2.s3"
-
-#   tags = {
-#     Environment = "test"
-#   }
-# }
+resource "aws_vpc_endpoint" "Terra-VPC-Endpoint-S3" {
+  vpc_id       = aws_vpc.Terra-VPC.id
+  # The VPC endpoint for S3 must be in the same region as the VPC
+  service_name = join("", ["com.amazonaws.",var.AWS_REGION,".s3"])    # ex: "com.amazonaws.us-west-2.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids = [aws_route_table.Terra-Private-Route-Table.id]
+  tags = {
+    Environment = "test",
+    Name        = "NC2-S3-VPC-Endpoint"
+  }
+}
 
 # VPC Endpoint for EC2
 # cf. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint
